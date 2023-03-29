@@ -29,10 +29,12 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "GovernanceToken",
     governanceToken.address
   );
-  // log('1', await governanceTokenContract.delegates(deployer))
-  const tx = await governanceTokenContract.delegate(deployer); // utilitée ?
+  // requires users to delegate to themselves in order to activate checkpoints and have their voting power tracked
+  log(`Checkpoint ${await governanceTokenContract.numCheckpoints(deployer)}`);
+  log('1', await governanceTokenContract.delegates(deployer))
+  const tx = await governanceTokenContract.delegate(deployer);
   await tx.wait(1);
-  // log('2', await governanceTokenContract.delegates(deployer))
+  log('2', await governanceTokenContract.delegates(deployer))
   log(`Checkpoint ${await governanceTokenContract.numCheckpoints(deployer)}`);
   log(`Governance Token delegated to ${deployer}`);
 

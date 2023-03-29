@@ -19,14 +19,14 @@ contract GovernorNumber is
     constructor(
         IVotes _token,
         TimelockController _timelock,
-        uint256 _votingDelay,
-        uint256 _votingPeriod,
-        uint256 _quorumPercentage
+        uint256 _votingDelay, // Delay since proposal is created until voting starts.
+        uint256 _votingPeriod, // 1 week (1 block = 12 seconds)
+        uint256 _quorumPercentage // Percentage of governors needed to make decisions
     )
         Governor("GovernorNumber")
         GovernorSettings(
-            _votingDelay, // 1 block
-            _votingPeriod, // 50400 blocks ~= 1 week
+            _votingDelay,
+            _votingPeriod,
             0
         )
         GovernorVotes(_token)
