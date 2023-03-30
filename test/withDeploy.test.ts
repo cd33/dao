@@ -32,6 +32,8 @@ describe.only("DAO with deployment", () => {
   let timelock: TimeLock;
   let governor: GovernorNumber;
   let number: Number;
+  const amount1 = ethers.utils.parseEther((2e5).toString());
+  const amount2 = ethers.utils.parseEther((1e5).toString());
   const voteAgainst = 0;
   const voteFor = 1;
   const voteAbstain = 2;
@@ -47,8 +49,6 @@ describe.only("DAO with deployment", () => {
     await token.deployed();
 
     // Le owner distribue des token aux 5 membres de la DAO
-    const amount1 = ethers.utils.parseEther((2e5).toString());
-    const amount2 = ethers.utils.parseEther((1e5).toString());
     await token.transfer(this.user1.address, amount1);
     await token.transfer(this.user2.address, amount1);
     await token.transfer(this.user3.address, amount2);
@@ -131,6 +131,20 @@ describe.only("DAO with deployment", () => {
 
     // 2 utilisateur ayant moins de 50% de la supply votent
     await governor.connect(this.user1).castVote(proposalId, voteFor);
+
+    // Après voté si on transfert ses tokens pour donner plus de poids à un copain, c'est inutile.
+    // Car lors de _castVote un weight est calculé (getPastVotes de ERC20Votes)
+    // Grace aux checkpoints du token, il prendra la valeur de la balance au moment du checkpoint (block.number)
+    // de la création de la proposal
+    let balanceUser1 = await token.balanceOf(this.user1.address);
+    let balanceUser2 = await token.balanceOf(this.user2.address);
+    expect(balanceUser1).to.equal(balanceUser2).to.equal(amount1);
+    await token.connect(this.user1).transfer(this.user2.address, amount1);
+    balanceUser1 = await token.balanceOf(this.user1.address);
+    balanceUser2 = await token.balanceOf(this.user2.address);
+    expect(balanceUser1).to.equal(0);
+    expect(balanceUser2).to.equal(amount1.mul(2));
+
     await governor.connect(this.user2).castVote(proposalId, voteFor);
 
     // On attend la fin de la période de votes
@@ -398,5 +412,5 @@ describe.only("DAO with deployment", () => {
     console.log("numberValue : ", numberValue.toString());
   });
 
-  // Reste à bien comprendre la phase Queue, des interactions possibles, cancel de la proposal ? et autres...
+  // it("ERC20Wrapped", async () => {});
 });
